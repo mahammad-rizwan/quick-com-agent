@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Quick Commerce Agent</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',sans-serif;background:#f0f2f5;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+.header{background:linear-gradient(135deg,#1a73e8,#0d47a1);color:white;padding:14px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 8px rgba(0,0,0,.2);flex-shrink:0}
+.header h1{font-size:18px;font-weight:700}
+.header p{font-size:11px;opacity:.8}
+.badges{margin-left:auto;display:flex;gap:8px}
+.badge{padding:4px 10px;border-radius:12px;font-size:11px;font-weight:700}
+.badge.b{background:#f0c000;color:#333}
+.badge.i{background:#fc8019;color:white}
+.main{flex:1;display:flex;overflow:hidden}
+.chat-col{flex:1;display:flex;flex-direction:column;border-right:1px solid #e0e0e0;min-width:0}
+.chat-area{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.msg{display:flex;gap:8px;align-items:flex-start}
+.msg.user{flex-direction:row-reverse}
+.avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.bot-avatar{background:#1a73e8}
+.user-avatar{background:#34a853}
+.bubble{max-width:82%;padding:10px 14px;border-radius:16px;font-size:13px;line-height:1.6}
+.bot-bubble{background:white;border-radius:4px 16px 16px 16px;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.user-bubble{background:#1a73e8;color:white;border-radius:16px 4px 16px 16px}
+.result-card{background:white;border-radius:10px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.08);margin-top:6px;width:100%}
+.rc-title{padding:8px 12px;background:#f8f9fa;font-weight:700;font-size:13px;border-bottom:1px solid #eee}
+.rc-row{display:flex;border-bottom:1px solid #f5f5f5}
+.rc-row:last-child{border:none}
+.rc-platform{width:50%;padding:10px 12px}
+.rc-platform:first-child{border-right:1px solid #f0f0f0}
+.rc-pname{font-size:11px;color:#888;font-weight:700;margin-bottom:4px}
+.rc-item{font-size:12px;color:#333;margin-bottom:2px}
+.rc-price{font-weight:700;font-size:15px;color:#1a73e8}
+.rc-price.best{color:#34a853}
+.rc-eta{font-size:11px;color:#888;margin-top:2px}
+.best-pill{background:#e8f5e9;color:#34a853;font-size:10px;font-weight:700;padding:2px 6px;border-radius:8px;margin-left:4px}
+.rec-card{background:white;border-radius:10px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.08);margin-top:6px;width:100%}
+.rec-title{padding:10px 14px;background:#1a73e8;color:white;font-weight:700;font-size:14px}
+.rec-option{padding:12px 14px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:10px}
+.rec-option:last-child{border:none}
+.rec-icon{font-size:22px;flex-shrink:0}
+.rec-info{flex:1}
+.rec-label{font-weight:700;font-size:13px;color:#333}
+.rec-detail{font-size:12px;color:#666;margin-top:2px}
+.rec-reason{font-size:11px;color:#888;font-style:italic;margin-top:2px}
+.rec-btn{padding:8px 16px;border:none;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;transition:all .2s;white-space:nowrap}
+.rec-btn.cheapest{background:#e8f5e9;color:#34a853}
+.rec-btn.cheapest:hover{background:#34a853;color:white}
+.rec-btn.fastest{background:#fff3e0;color:#f57c00}
+.rec-btn.fastest:hover{background:#f57c00;color:white}
+.rec-btn.best{background:#e8f0fe;color:#1a73e8}
+.rec-btn.best:hover{background:#1a73e8;color:white}
+.rec-btn.both{background:#fce4ec;color:#e91e63}
+.rec-btn.both:hover{background:#e91e63;color:white}
+.cart-card{background:white;border-radius:10px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.08);margin-top:6px;width:100%}
+.cart-title{padding:10px 14px;background:#34a853;color:white;font-weight:700;font-size:14px}
+.cart-section{padding:10px 14px;border-bottom:1px solid #f0f0f0}
+.cart-section-title{font-weight:700;font-size:12px;color:#888;margin-bottom:6px;text-transform:uppercase}
+.cart-item{display:flex;justify-content:space-between;font-size:13px;padding:3px 0;color:#333}
+.cart-total{padding:10px 14px;background:#f8f9fa;font-weight:700;font-size:15px;display:flex;justify-content:space-between}
+.checkout-btn{display:block;margin:8px 14px;padding:11px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;text-align:center;text-decoration:none;transition:background .2s;color:inherit}
+.checkout-btn.blinkit{background:#f0c000;color:#333}
+.checkout-btn.blinkit:hover{background:#d4a000}
+.checkout-btn.instamart{background:#fc8019;color:white}
+.checkout-btn.instamart:hover{background:#e06010}
+.cart-bottom-space{height:8px}
+.typing{display:flex;gap:4px;align-items:center}
+.typing span{width:7px;height:7px;background:#aaa;border-radius:50%;animation:bounce 1.2s infinite}
+.typing span:nth-child(2){animation-delay:.2s}
+.typing span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+.input-wrap{padding:12px 16px;background:white;border-top:1px solid #e0e0e0;flex-shrink:0}
+.input-row{display:flex;gap:8px}
+.input-row input{flex:1;padding:11px 16px;border:2px solid #e0e0e0;border-radius:24px;font-size:13px;outline:none;transition:border-color .2s}
+.input-row input:focus{border-color:#1a73e8}
+.send-btn{width:44px;height:44px;background:#1a73e8;border:none;border-radius:50%;cursor:pointer;color:white;font-size:18px;display:flex;align-items:center;justify-content:center;transition:background .2s;flex-shrink:0}
+.send-btn:hover{background:#1557b0}
+.send-btn:disabled{background:#ccc;cursor:not-allowed}
+.progress-col{width:300px;display:flex;flex-direction:column;background:#fafafa;flex-shrink:0}
+.progress-header{padding:14px 16px;background:white;border-bottom:1px solid #e0e0e0;font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.live-dot{width:8px;height:8px;border-radius:50%;background:#ccc;transition:background .3s;flex-shrink:0}
+.live-dot.active{background:#34a853;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.progress-body{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.p-section{background:white;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.p-header{padding:8px 12px;font-weight:700;font-size:12px;display:flex;align-items:center;gap:6px;border-bottom:1px solid transparent}
+.p-header.blinkit{background:#fff9e0;color:#d4a000;border-bottom-color:#f5e79e}
+.p-header.instamart{background:#fff3eb;color:#fc8019;border-bottom-color:#ffd5b4}
+.p-header.system{background:#e8f0fe;color:#1a73e8;border-bottom-color:#c5d8fb}
+.log-list{padding:8px 12px;display:flex;flex-direction:column;gap:5px}
+.log-item{display:flex;align-items:flex-start;gap:7px;font-size:12px;color:#444;line-height:1.4;padding:3px 0;border-bottom:1px solid #f5f5f5;animation:fadeIn .3s ease}
+.log-item:last-child{border:none}
+@keyframes fadeIn{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
+.spinner{width:11px;height:11px;border:2px solid #e0e0e0;border-top-color:#1a73e8;border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0;margin-top:1px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.s-done{color:#34a853;flex-shrink:0}
+.s-err{color:#ea4335;flex-shrink:0}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="font-size:24px">🛒</div>
+  <div>
+    <h1>Quick Commerce Agent</h1>
+    <p>AI-powered shopping across Blinkit & Instamart</p>
+  </div>
+  <div class="badges">
+    <span class="badge b">⚡ Blinkit</span>
+    <span class="badge i">🧡 Instamart</span>
+  </div>
+</div>
+
+<div class="main">
+  <div class="chat-col">
+    <div class="chat-area" id="chatArea">
+      <div class="msg bot">
+        <div class="avatar bot-avatar">🤖</div>
+        <div class="bubble bot-bubble">
+          👋 Hi! I'm your <strong>Quick Commerce Agent</strong>.<br><br>
+          Tell me what groceries you need and I will:<br>
+          • Open <strong>Blinkit</strong> &amp; <strong>Instamart</strong> and search live<br>
+          • Compare prices and delivery times<br>
+          • Recommend the best option<br>
+          • Add to cart automatically<br><br>
+          <em>Try: "1kg tomato, 1kg potato and 1kg sugar"</em>
+        </div>
+      </div>
+    </div>
+    <div class="input-wrap">
+      <div class="input-row">
+        <input type="text" id="userInput"
+          placeholder="What groceries do you need today?"
+          onkeydown="if(event.key==='Enter')sendMessage()"/>
+        <button class="send-btn" onclick="sendMessage()" id="sendBtn">➤</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="progress-col">
+    <div class="progress-header">
+      <div class="live-dot" id="liveDot"></div>
+      Live Activity
+    </div>
+    <div class="progress-body" id="progressBody">
+      <div style="text-align:center;color:#bbb;font-size:13px;margin-top:60px">
+        🕐 Waiting for your request...
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const BACKEND = 'http://localhost:3001';
+const SESSION = 'sess_' + Date.now();
+let   esSrc   = null;
+let   busy    = false;
+
+// ── Helpers ────────────────────────────────────────────────────
+function addMsg(role, html) {
+  const area = document.getElementById('chatArea');
+  const d    = document.createElement('div');
+  d.className = `msg ${role}`;
+  d.innerHTML = `
+    <div class="avatar ${role}-avatar">${role==='bot'?'🤖':'👤'}</div>
+    <div class="bubble ${role}-bubble">${html}</div>`;
+  area.appendChild(d);
+  area.scrollTop = area.scrollHeight;
+  return d;
+}
+
+function showTyping() {
+  const area = document.getElementById('chatArea');
+  const d    = document.createElement('div');
+  d.id = 'typing'; d.className = 'msg bot';
+  d.innerHTML = `
+    <div class="avatar bot-avatar">🤖</div>
+    <div class="bubble bot-bubble">
+      <div class="typing"><span></span><span></span><span></span></div>
+    </div>`;
+  area.appendChild(d);
+  area.scrollTop = area.scrollHeight;
+}
+
+function removeTyping() {
+  const t = document.getElementById('typing');
+  if (t) t.remove();
+}
+
+function setLive(on) {
+  document.getElementById('liveDot').className = 'live-dot' + (on?' active':'');
+}
+
+function setBusy(on) {
+  busy = on;
+  document.getElementById('sendBtn').disabled = on;
+}
+
+function clearProgress() {
+  document.getElementById('progressBody').innerHTML = '';
+}
+
+function getLogList(platform) {
+  const sid = `ps-${platform}`;
+  let sec = document.getElementById(sid);
+  if (!sec) {
+    sec = document.createElement('div');
+    sec.className = 'p-section'; sec.id = sid;
+    const label = platform==='blinkit'?'⚡ Blinkit':platform==='instamart'?'🧡 Instamart':'🤖 System';
+    sec.innerHTML = `
+      <div class="p-header ${platform}">${label}</div>
+      <div class="log-list" id="pl-${platform}"></div>`;
+    document.getElementById('progressBody').appendChild(sec);
+  }
+  return document.getElementById(`pl-${platform}`);
+}
+
+function addLog(platform, message, status) {
+  const list = getLogList(platform);
+  const item = document.createElement('div');
+  item.className = 'log-item';
+  const icon = status==='loading'?'<div class="spinner"></div>'
+             : status==='done'   ?'<span class="s-done">✅</span>'
+             : status==='error'  ?'<span class="s-err">❌</span>'
+             : '<span>ℹ️</span>';
+  item.innerHTML = `${icon}<span>${message}</span>`;
+  list.appendChild(item);
+  document.getElementById('progressBody').scrollTop = 999999;
+}
+
+// ── Build Cards ────────────────────────────────────────────────
+function buildSearchCard(d) {
+  const b   = d.blinkit[0];
+  const im  = d.instamart[0];
+  const bp  = b?.price  ?? null;
+  const imp = im?.price ?? null;
+  const bBest  = bp  !== null && (imp === null || bp  <= imp);
+  const imBest = imp !== null && (bp  === null || imp <  bp);
+  return `
+  <div class="result-card">
+    <div class="rc-title">📦 ${d.quantity} ${d.product}</div>
+    <div class="rc-row">
+      <div class="rc-platform">
+        <div class="rc-pname">⚡ BLINKIT</div>
+        ${b?`<div class="rc-item">${b.name}</div>
+             <div class="rc-price ${bBest?'best':''}">₹${b.price}${bBest?'<span class="best-pill">CHEAPEST</span>':''}</div>
+             <div class="rc-eta">🕐 ~${d.blinkitEta} mins</div>`
+          :'<div class="rc-item" style="color:#bbb">Not found</div>'}
+      </div>
+      <div class="rc-platform">
+        <div class="rc-pname">🧡 INSTAMART</div>
+        ${im?`<div class="rc-item">${im.name}</div>
+              <div class="rc-price ${imBest?'best':''}">₹${im.price}${imBest?'<span class="best-pill">CHEAPEST</span>':''}</div>
+              <div class="rc-eta">🕐 ~${d.instamartEta} mins</div>`
+           :'<div class="rc-item" style="color:#bbb">Not found</div>'}
+      </div>
+    </div>
+  </div>`;
+}
+
+function buildRecCard(rec) {
+  const opts = [
+    { key:'cheapest', icon:'🏷️', label:'Cheapest Price',   data:rec.cheapest,    cls:'cheapest' },
+    { key:'fastest',  icon:'⚡', label:'Fastest Delivery', data:rec.fastest,     cls:'fastest'  },
+    { key:'best',     icon:'🏆', label:'Best Overall',     data:rec.bestOverall, cls:'best'     },
+    { key:'both',     icon:'🛒', label:'Add to Both',      data:null,            cls:'both'     },
+  ];
+  return `
+  <div class="rec-card">
+    <div class="rec-title">🤖 Pick your preference to add to cart</div>
+    ${opts.map(o=>`
+    <div class="rec-option">
+      <div class="rec-icon">${o.icon}</div>
+      <div class="rec-info">
+        <div class="rec-label">${o.label}</div>
+        ${o.data?`<div class="rec-detail">${o.data.platform} — ₹${o.data.totalPrice} — ~${o.data.totalEta} mins</div>
+                  <div class="rec-reason">${o.data.reason}</div>`
+                :`<div class="rec-detail">Add to cart on both platforms</div>`}
+      </div>
+      <button class="rec-btn ${o.cls}" onclick="chooseOption('${o.key}')">Choose</button>
+    </div>`).join('')}
+  </div>`;
+}
+
+function buildCartCard(d) {
+  let h = `<div class="cart-card"><div class="cart-title">✅ Items Added to Cart</div>`;
+  if (d.blinkitCart.length) {
+    h += `<div class="cart-section">
+      <div class="cart-section-title">⚡ Blinkit — ~${d.blinkitEta} mins delivery</div>
+      ${d.blinkitCart.map(i=>`<div class="cart-item"><span>${i.quantity} ${i.name}</span><span>₹${i.price}</span></div>`).join('')}
+    </div>`;
+  }
+  if (d.instamartCart.length) {
+    h += `<div class="cart-section">
+      <div class="cart-section-title">🧡 Instamart — ~${d.instamartEta} mins delivery</div>
+      ${d.instamartCart.map(i=>`<div class="cart-item"><span>${i.quantity} ${i.name}</span><span>₹${i.price}</span></div>`).join('')}
+    </div>`;
+  }
+  const total = d.blinkitTotal + d.instamartTotal;
+  h += `<div class="cart-total"><span>Total</span><span>₹${total}</span></div>`;
+  if (d.blinkitCart.length)
+    h += `<a class="checkout-btn blinkit" href="${d.checkoutLinks.blinkit}" target="_blank">⚡ Checkout on Blinkit (₹${d.blinkitTotal})</a>`;
+  if (d.instamartCart.length)
+    h += `<a class="checkout-btn instamart" href="${d.checkoutLinks.instamart}" target="_blank">🧡 Checkout on Instamart (₹${d.instamartTotal})</a>`;
+  h += `<div class="cart-bottom-space"></div></div>`;
+  return h;
+}
+
+// ── Choose option ──────────────────────────────────────────────
+function chooseOption(choice) {
+  addMsg('user', `I'll go with <strong>${choice}</strong>`);
+  showTyping();
+  setBusy(true);
+  setLive(true);
+  addLog('system', `🛒 Adding to cart (${choice})...`, 'loading');
+
+  const es = new EventSource(`${BACKEND}/add-to-cart-stream?choice=${choice}&sessionId=${SESSION}`);
+
+  es.onmessage = e => {
+    const data = JSON.parse(e.data);
+    if (data.type === 'progress') {
+      addLog(data.platform, data.message, data.status);
+    }
+    else if (data.type === 'cart_summary') {
+      removeTyping();
+      setLive(false);
+      setBusy(false);
+      addMsg('bot', '🎉 <strong>Done! Here\'s your cart summary:</strong>' + buildCartCard(data));
+      es.close();
+    }
+    else if (data.type === 'error') {
+      removeTyping();
+      setLive(false);
+      setBusy(false);
+      addMsg('bot', `❌ ${data.message}`);
+      es.close();
+    }
+  };
+
+  es.onerror = () => { removeTyping(); setLive(false); setBusy(false); es.close(); };
+}
+
+// ── Main send ──────────────────────────────────────────────────
+async function sendMessage() {
+  if (busy) return;
+  const input = document.getElementById('userInput');
+  const msg   = input.value.trim();
+  if (!msg) return;
+
+  addMsg('user', msg);
+  input.value = '';
+  setBusy(true);
+  showTyping();
+
+  try {
+    // Check intent
+    const r      = await fetch(`${BACKEND}/chat`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ message: msg, sessionId: SESSION })
+    });
+    const intent = await r.json();
+    removeTyping();
+
+    // Just chatting
+    if (intent.intent === 'chat') {
+      addMsg('bot', intent.reply);
+      setBusy(false);
+      return;
+    }
+
+    // Shopping — start SSE
+    addMsg('bot', `${intent.reply}<br><small style="color:#888">Watch the live activity panel on the right →</small>`);
+    clearProgress();
+    setLive(true);
+
+    if (esSrc) { esSrc.close(); esSrc = null; }
+
+    esSrc = new EventSource(`${BACKEND}/shop-live?message=${encodeURIComponent(msg)}&sessionId=${SESSION}`);
+
+    esSrc.onmessage = e => {
+      const data = JSON.parse(e.data);
+
+      if (data.type === 'progress') {
+        addLog(data.platform, data.message, data.status);
+      }
+      else if (data.type === 'search_result') {
+        addMsg('bot', buildSearchCard(data));
+      }
+      else if (data.type === 'recommendation') {
+        addMsg('bot', '🤖 <strong>Here\'s the comparison! Choose how to shop:</strong>' + buildRecCard(data.recommendation));
+        setLive(false);
+        setBusy(false);
+        esSrc.close();
+      }
+      else if (data.type === 'error') {
+        addMsg('bot', `❌ ${data.message}`);
+        setLive(false);
+        setBusy(false);
+        esSrc.close();
+      }
+      else if (data.type === 'done') {
+        setLive(false);
+        setBusy(false);
+        if (esSrc) esSrc.close();
+      }
+    };
+
+    esSrc.onerror = () => { setLive(false); setBusy(false); if (esSrc) esSrc.close(); };
+
+  } catch (err) {
+    removeTyping();
+    addMsg('bot', `❌ Error: ${err.message}`);
+    setBusy(false);
+  }
+}
+</script>
+</body>
+</html>
